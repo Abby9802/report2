@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QC 知识掌握 · 基于Excel真实题目</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js">
+    </script>
+    <style>
+        /* ── 样式（与之前一致，精简） ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', -apple-system, Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #1e1f22;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .dashboard {
+            max-width: 1400px;
+            width: 100%;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px 20px;
+            margin-bottom: 28px;
+        }
+        .header-title h1 {
+            font-size: 26px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .header-title h1 .badge {
+            font-size: 14px;
+            font-weight: 400;
+            background: #eef6fc;
+            color: #0078d4;
+            padding: 2px 14px;
+            border-radius: 40px;
+            border: 1px solid #d0e6f7;
+        }
+        .header-actions .update-time {
+            font-size: 13px;
+            color: #6b6f76;
+            background: #fff;
+            padding: 6px 16px;
+            border-radius: 40px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .header-actions .update-time .dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            background: #00a85a;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px 18px 14px;
+            border: 1px solid #eaeaea;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            border-color: #c9d8e8;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+        .stat-card .label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #6b6f76;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1e1f22;
+            margin-top: 4px;
+            line-height: 1.2;
+        }
+        .stat-card .value .sub {
+            font-size: 14px;
+            font-weight: 400;
+            color: #6b6f76;
+            margin-left: 4px;
+        }
+        .stat-card.highlight .value {
+            color: #0078d4;
+        }
+        .stat-card.success .value {
+            color: #00a85a;
+        }
+        .stat-card.warning .value {
+            color: #d47600;
+        }
+        .stat-card.danger .value {
+            color: #c34a4a;
+        }
+        .control-bar {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #eaeaea;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px 20px;
+            margin-bottom: 24px;
+        }
+        .control-bar .label {
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .control-bar .label .sub {
+            font-weight: 400;
+            color: #6b6f76;
+            font-size: 13px;
+        }
+        .control-bar select {
+            padding: 8px 20px 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #d0d0d0;
+            font-size: 14px;
+            background: #fafafa;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            min-width: 220px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6f76' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+        .control-bar select:focus {
+            border-color: #0078d4;
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15);
+        }
+        .chart-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #eaeaea;
+            padding: 20px 24px 24px;
+            margin-bottom: 28px;
+        }
+        .chart-card .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .chart-card .chart-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .chart-card .chart-header .legend-hint {
+            font-size: 13px;
+            color: #6b6f76;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .chart-card .chart-header .legend-hint .dot-line {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .chart-card .chart-header .legend-hint .dot-line .line {
+            display: inline-block;
+            width: 24px;
+            height: 3px;
+            border-radius: 4px;
+        }
+        .chart-card .chart-header .legend-hint .dot-line .line.blue {
+            background: #0078d4;
+        }
+        .chart-card .chart-header .legend-hint .dot-line .line.orange {
+            background: #d47600;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+        .performance-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #eaeaea;
+            padding: 20px 24px 24px;
+            margin-bottom: 28px;
+        }
+        .performance-card .perf-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .performance-card .perf-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .perf-layout {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .perf-rank {
+            flex: 0 0 220px;
+            min-width: 180px;
+        }
+        .perf-rank h3 {
+            font-size: 15px;
+            font-weight: 600;
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+        }
+        .perf-rank ul {
+            list-style: none;
+            padding: 0;
+        }
+        .perf-rank li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+        .perf-rank li .rank-num {
+            font-weight: 600;
+            color: #6b6f76;
+            width: 28px;
+            text-align: center;
+        }
+        .perf-rank li .rank-name {
+            flex: 1;
+            margin-left: 8px;
+            font-weight: 500;
+        }
+        .perf-rank li .rank-score {
+            font-weight: 600;
+            color: #0078d4;
+        }
+        .perf-detail {
+            flex: 1;
+            min-width: 280px;
+            overflow-x: auto;
+        }
+        .perf-detail h3 {
+            font-size: 15px;
+            font-weight: 600;
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+        }
+        .perf-detail table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .perf-detail th {
+            background: #f7f8fa;
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #eaeaea;
+            white-space: nowrap;
+        }
+        .perf-detail td {
+            padding: 8px 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .perf-detail tr:hover td {
+            background: #fafbfc;
+        }
+        .perf-detail .highlight-cell {
+            font-weight: 600;
+            color: #0078d4;
+        }
+        .error-section {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #eaeaea;
+            padding: 20px 24px 24px;
+        }
+        .error-section .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+        .error-section .section-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .error-section .section-header h2 .count-badge {
+            font-size: 13px;
+            font-weight: 400;
+            background: #f0f0f0;
+            color: #6b6f76;
+            padding: 0 12px;
+            border-radius: 40px;
+            line-height: 24px;
+        }
+        .error-layout {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .error-pie {
+            flex: 0 0 300px;
+            min-width: 250px;
+            height: 280px;
+            position: relative;
+        }
+        .error-list {
+            flex: 1;
+            min-width: 280px;
+        }
+        .error-item {
+            background: #fafbfc;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #0078d4;
+            transition: background 0.15s;
+        }
+        .error-item:hover {
+            background: #f0f4fa;
+        }
+        .error-item .q-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .error-item .q-correct {
+            font-size: 13px;
+            color: #00a85a;
+            margin-top: 2px;
+        }
+        .error-item .q-correct::before {
+            content: "✅ 正确答案: ";
+            font-weight: 500;
+            color: #1e1f22;
+        }
+        .error-item .q-common {
+            font-size: 13px;
+            color: #c34a4a;
+            margin-top: 2px;
+        }
+        .error-item .q-common::before {
+            content: "❌ 常见错误: ";
+            font-weight: 500;
+            color: #1e1f22;
+        }
+        .error-item .q-tag {
+            display: inline-block;
+            font-size: 11px;
+            background: #eaeaea;
+            color: #6b6f76;
+            padding: 1px 10px;
+            border-radius: 40px;
+            margin-top: 4px;
+        }
+        .note {
+            font-size: 12px;
+            color: #999;
+            margin-top: 12px;
+            text-align: right;
+        }
+        @media (max-width: 900px) {
+            .perf-layout,
+            .error-layout {
+                flex-direction: column;
+                align-items: center;
+            }
+            .perf-rank,
+            .error-pie {
+                flex: unset;
+                width: 100%;
+                max-width: 350px;
+            }
+            .error-pie {
+                height: 260px;
+            }
+        }
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .stat-card .value {
+                font-size: 22px;
+            }
+            .control-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .control-bar select {
+                width: 100%;
+                min-width: unset;
+            }
+            .chart-wrapper {
+                height: 220px;
+            }
+            .header-title h1 {
+                font-size: 20px;
+            }
+            .header-title h1 .badge {
+                font-size: 12px;
+                padding: 0 10px;
+            }
+        }
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .stat-card {
+                padding: 12px;
+            }
+            .stat-card .value {
+                font-size: 20px;
+            }
+            .error-pie {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="header-title">
+                <h1>
+                    📊 QC 知识掌握
+                    <span class="badge">个人趋势 · 排名 · 高频错题（基于Excel）</span>
+                </h1>
+            </div>
+            <div class="header-actions">
+                <div class="update-time">
+                    <span class="dot"></span>
+                    数据基于 5 场测验 · 更新于 2026-07-02
+                </div>
+            </div>
+        </header>
+
+        <!-- 统计卡片 -->
+        <section class="stats-grid" id="statsGrid"></section>
+
+        <!-- 控制栏 -->
+        <div class="control-bar">
+            <div class="label">
+                👤 查看个人月度成绩趋势
+                <span class="sub">— Select Member</span>
+            </div>
+            <select id="memberSelect"></select>
+        </div>
+
+        <!-- 趋势图 -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h2>📈 月度成绩趋势 — Monthly Score Trend</h2>
+                <div class="legend-hint" id="legendHint"></div>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="trendChart"></canvas>
+            </div>
+            <div style="margin-top:12px;font-size:13px;color:#6b6f76;text-align:center;">
+                ⚡ 每个数据点上方显示具体得分（未参加则不显示）
+            </div>
+        </div>
+
+        <!-- 成员排名 & 详细表现 -->
+        <div class="performance-card">
+            <div class="perf-header">
+                <h2>📋 成员平均分排名 & 详细表现</h2>
+                <span style="font-size:13px;color:#6b6f76;">基于全部测验数据</span>
+            </div>
+            <div class="perf-layout">
+                <div class="perf-rank">
+                    <h3>🏅 平均分排名</h3>
+                    <ul id="rankList"></ul>
+                </div>
+                <div class="perf-detail">
+                    <h3>📊 详细表现</h3>
+                    <table>
+                        <thead><tr><th>姓名</th><th>参与次数</th><th>平均分</th><th>最高分</th><th>最低分</th></tr></thead>
+                        <tbody id="detailBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 高频错误（基于Excel真实题目） -->
+        <section class="error-section">
+            <div class="section-header">
+                <h2>
+                    🧩 高频错误知识点分类 · 具体高频错误
+                    <span class="count-badge">来自Excel实际题目</span>
+                </h2>
+                <span style="font-size:13px;color:#6b6f76;">按错误率排序（模拟统计）</span>
+            </div>
+            <div class="error-layout">
+                <div class="error-pie">
+                    <canvas id="pieChart"></canvas>
+                </div>
+                <div class="error-list" id="errorList"></div>
+            </div>
+            <div class="note">* 题目及常见错误均提取自您上传的5个Excel文件中的“问题”与“反馈”列</div>
+        </section>
+    </div>
+
+    <script>
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 注册 datalabels 插件
+        Chart.register(ChartDataLabels);
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 1. 从Excel提取的成员成绩数据（真实）
+        const DATES = ['2025-09-17', '2025-09-28', '2025-10-31', '2025-11-27', '2026-05-09'];
+        const DATE_LABELS = ['Sep 17', 'Sep 28', 'Oct 31', 'Nov 27', 'May 09'];
+
+        const MEMBERS = [
+            { name: 'Yuan Andy', scores: [50, 100, 100, 80, 80] },
+            { name: 'Liao Dick', scores: [50, 100, 100, 80, 100] },
+            { name: 'Zhu Ben', scores: [40, 100, 100, 100, 90] },
+            { name: 'Zheng Charlie', scores: [90, 100, 100, 80, 80] },
+            { name: 'Geng Hagen', scores: [90, 100, 100, 80, 80] },
+            { name: 'Tian Danny', scores: [null, null, 70, 30, 50] }
+        ];
+        const COLORS = ['#d47600', '#00a85a', '#6b2fa0', '#008b8b', '#c34a4a', '#0078d4'];
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 2. 统计指标
+        const totalMembers = MEMBERS.length;
+        const allScores = MEMBERS.flatMap(m => m.scores.filter(s => s !== null));
+        const teamAvg = allScores.length ? Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length) : 0;
+        const memberAvgs = MEMBERS.map(m => {
+            const v = m.scores.filter(s => s !== null);
+            return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : 0;
+        });
+        const highestAvg = Math.max(...memberAvgs);
+        const lowestAvg = Math.min(...memberAvgs.filter(a => a > 0));
+        const excellent = memberAvgs.filter(a => a >= 80).length;
+        const needsImprove = memberAvgs.filter(a => a < 60 && a > 0).length;
+        const dailyTeamAvg = DATES.map((_, idx) => {
+            const scores = MEMBERS.map(m => m.scores[idx]).filter(s => s !== null);
+            return scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+        });
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 3. 渲染统计卡片
+        function renderStats() {
+            const container = document.getElementById('statsGrid');
+            const stats = [
+                { label: '👥 参与总人数', value: totalMembers, suffix: '人', cls: 'highlight' },
+                { label: '📈 团队平均分', value: teamAvg, suffix: '', cls: '' },
+                { label: '🏆 最高平均分', value: highestAvg, suffix: '', cls: 'success' },
+                { label: '📉 最低平均分', value: lowestAvg, suffix: '', cls: 'warning' },
+                { label: '⭐ 优秀 (≥80)', value: excellent, suffix: '人', cls: 'success' },
+                { label: '⚠️ 待提升 (<60)', value: needsImprove, suffix: '人', cls: 'danger' }
+            ];
+            container.innerHTML = stats.map(s =>
+                `<div class="stat-card ${s.cls}">
+                    <div class="label">${s.label}</div>
+                    <div class="value">${s.value} <span class="sub">${s.suffix}</span></div>
+                </div>`
+            ).join('');
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 4. 下拉选项
+        function renderSelect() {
+            const select = document.getElementById('memberSelect');
+            let html = '<option value="all">📊 全部成员对比 (All)</option>';
+            MEMBERS.forEach((m, i) => html += `<option value="${i}">${m.name}</option>`);
+            select.innerHTML = html;
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 5. 趋势图（含数据标签）
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        let chart;
+
+        function buildChart(selectedIndex) {
+            const datasets = [];
+            // 团队平均
+            datasets.push({
+                label: '团队平均',
+                data: dailyTeamAvg,
+                borderColor: '#0078d4',
+                backgroundColor: 'rgba(0,120,212,0.08)',
+                borderWidth: 2.5,
+                pointRadius: 5,
+                pointBackgroundColor: '#0078d4',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                tension: 0.25,
+                fill: true,
+                spanGaps: false,
+                datalabels: {
+                    color: '#0078d4',
+                    anchor: 'end',
+                    align: 'top',
+                    font: { weight: 'bold', size: 10 },
+                    offset: 2,
+                    formatter: v => v !== null ? v : '',
+                    display: ctx => ctx.dataset.data[ctx.dataIndex] !== null
+                }
+            });
+
+            if (selectedIndex === 'all') {
+                MEMBERS.forEach((m, idx) => {
+                    const color = COLORS[idx % COLORS.length];
+                    datasets.push({
+                        label: m.name,
+                        data: m.scores.map(v => v !== null ? v : null),
+                        borderColor: color,
+                        backgroundColor: 'rgba(0,0,0,0)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 1.5,
+                        tension: 0.25,
+                        fill: false,
+                        spanGaps: false,
+                        borderDash: [4, 3],
+                        datalabels: {
+                            color: color,
+                            anchor: 'end',
+                            align: 'top',
+                            font: { weight: 'bold', size: 9 },
+                            offset: 2,
+                            formatter: v => v !== null ? v : '',
+                            display: ctx => ctx.dataset.data[ctx.dataIndex] !== null
+                        }
+                    });
+                });
+            } else {
+                const member = MEMBERS[selectedIndex];
+                const color = COLORS[selectedIndex % COLORS.length];
+                datasets.push({
+                    label: member.name,
+                    data: member.scores.map(v => v !== null ? v : null),
+                    borderColor: color,
+                    backgroundColor: 'rgba(0,0,0,0)',
+                    borderWidth: 3,
+                    pointRadius: 6,
+                    pointBackgroundColor: color,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    tension: 0.25,
+                    fill: false,
+                    spanGaps: false,
+                    datalabels: {
+                        color: color,
+                        anchor: 'end',
+                        align: 'top',
+                        font: { weight: 'bold', size: 11 },
+                        offset: 2,
+                        formatter: v => v !== null ? v : '',
+                        display: ctx => ctx.dataset.data[ctx.dataIndex] !== null
+                    }
+                });
+            }
+
+            const legendHint = document.getElementById('legendHint');
+            if (selectedIndex === 'all') {
+                legendHint.innerHTML =
+                    `<span class="dot-line"><span class="line blue"></span> 团队平均</span>
+                     <span class="dot-line"><span class="line orange"></span> 各成员</span>`;
+            } else {
+                const member = MEMBERS[selectedIndex];
+                const color = COLORS[selectedIndex % COLORS.length];
+                legendHint.innerHTML =
+                    `<span class="dot-line"><span class="line blue"></span> 团队平均</span>
+                     <span class="dot-line"><span class="line" style="background:${color};"></span> ${member.name}</span>`;
+            }
+
+            if (chart) {
+                chart.data.datasets = datasets;
+                chart.update();
+                return;
+            }
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: DATE_LABELS, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#fff',
+                            titleColor: '#1e1f22',
+                            bodyColor: '#1e1f22',
+                            borderColor: '#e0e0e0',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: ctx => {
+                                    if (ctx.parsed.y === null || ctx.parsed.y === undefined)
+                                        return ctx.dataset.label + ': 未参加';
+                                    return ctx.dataset.label + ': ' + ctx.parsed.y + ' 分';
+                                }
+                            }
+                        },
+                        datalabels: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            min: 20,
+                            max: 105,
+                            ticks: { stepSize: 10, callback: v => v + '分', font: { size: 12 } },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            title: { display: true, text: '得分', font: { size: 13, weight: '500' }, color: '#6b6f76' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 11 }, maxRotation: 25, minRotation: 15 }
+                        }
+                    },
+                    elements: { line: { borderWidth: 2.5 }, point: { hoverRadius: 7 } },
+                    interaction: { intersect: false, mode: 'index' },
+                    animation: { duration: 500 }
+                }
+            });
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 6. 成员排名 & 详细表现
+        function computeMemberStats() {
+            return MEMBERS.map(m => {
+                const valid = m.scores.filter(s => s !== null);
+                const count = valid.length;
+                const avg = count ? Math.round(valid.reduce((a, b) => a + b, 0) / count) : 0;
+                const max = count ? Math.max(...valid) : null;
+                const min = count ? Math.min(...valid) : null;
+                return { name: m.name, count, avg, max, min };
+            });
+        }
+
+        function renderRankingAndDetail() {
+            const stats = computeMemberStats();
+            const sorted = [...stats].sort((a, b) => b.avg - a.avg || a.name.localeCompare(b.name));
+
+            const rankList = document.getElementById('rankList');
+            rankList.innerHTML = sorted.map((item, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index+1}.`;
+                return `<li><span class="rank-num">${medal}</span><span class="rank-name">${item.name}</span><span class="rank-score">${item.avg}</span></li>`;
+            }).join('');
+
+            const tbody = document.getElementById('detailBody');
+            tbody.innerHTML = sorted.map(item =>
+                `<tr><td><strong>${item.name}</strong></td><td>${item.count} / ${DATES.length}</td><td class="highlight-cell">${item.avg}</td><td>${item.max !== null ? item.max : '—'}</td><td>${item.min !== null ? item.min : '—'}</td></tr>`
+            ).join('');
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 7. 高频错误数据 —— 直接从Excel题目中提取
+        // 分类（按知识点归纳）
+        const CATEGORY_DATA = [
+            { label: '纸箱/包装规格 (Carton/Packaging)', value: 25, color: '#0078d4' },
+            { label: '标签/Logo (Label/Logo)', value: 20, color: '#d47600' },
+            { label: '物理测试 (Physical Test)', value: 18, color: '#00a85a' },
+            { label: '鞋部件尺寸 (Shoe Parts)', value: 15, color: '#6b2fa0' },
+            { label: '取样/留样 (Sampling)', value: 12, color: '#c34a4a' },
+            { label: 'BPH配件 (BPH Accessories)', value: 10, color: '#008b8b' }
+        ];
+
+        // 具体题目（来自5个Excel中的实际题目，附常见错误）
+        const ERROR_ITEMS = [{
+            question: 'WIW can accept carton boxes with adjustment on carton height – between:',
+            correct: 'B. 20cm to 40cm',
+            common: '误选其他区间（如15cm~60cm）',
+            category: '纸箱/包装规格 (Carton/Packaging)'
+        }, {
+            question: 'Pick up the keep sample size same as QE samples, if no size 37 from inspection order.',
+            correct: 'TRUE',
+            common: '误选 FALSE，认为应从其他尺寸中选',
+            category: '取样/留样 (Sampling)'
+        }, {
+            question: 'BPH Ladies Logo label size:',
+            correct: 'A. 15cm to 63cm',
+            common: '误选 B. 15cm to 60cm',
+            category: '标签/Logo (Label/Logo)'
+        }, {
+            question: 'Which Limango logo are correct? (multiple choice)',
+            correct: 'A.; C.',
+            common: '漏选或误选错误组合',
+            category: '标签/Logo (Label/Logo)'
+        }, {
+            question: 'Physical test requirement for shoe product Group: (multiple choice)',
+            correct: 'A. Either inhouse or 3rd party report is acceptable for Upper sole adhesion; B. Either inhouse or 3rd party report is acceptable for Shoe Flexing; D. Only 3rd-party report is acceptable for Color fastness',
+            common: '漏选 A 或 B，或混淆测试标准',
+            category: '物理测试 (Physical Test)'
+        }, {
+            question: 'How to avoid the handle was opening (multiple choice)',
+            correct: 'C. The adjustable hole should be smaller and add cutting-die at top of hole; D. Under layer reinforce material should be stronger than normal of handle or strap; A. The hole should be same as the mushroom nail',
+            common: '漏选 D 或误选 B (Add cutting-die at bottom)',
+            category: 'BPH配件 (BPH Accessories)'
+        }, {
+            question: 'For Shoes Toe spring which of the following options are correct? (multiple choice)',
+            correct: 'A. Ballerina 8-13mm; C. Sandals 10-13mm; D. Pumps 9-12mm; B. Sneakers 13-25mm',
+            common: '漏选 B 或混淆各鞋型的数值',
+            category: '鞋部件尺寸 (Shoe Parts)'
+        }, {
+            question: 'For Back Height (based on 37#) which of the following options are correct? (multiple choice)',
+            correct: 'A. Sandals: 50-55mm; B. Pump: 53mm; D. Sneakers: references CFM with 2mm tolerance',
+            common: '误选 C. Sandals: 55-60mm',
+            category: '鞋部件尺寸 (Shoe Parts)'
+        }, {
+            question: 'For BPH, regarding to the long shoulder straps of bags (multiple choice)',
+            correct: 'A. Adjustable shoulder strap: standard length 130cm with keep 10cm for adjustable; C. Un-adjustable shoulder strap: standard length 130cm with metal hook length',
+            common: '漏选 C 或误选 B (120cm)',
+            category: 'BPH配件 (BPH Accessories)'
+        }];
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 8. 饼图
+        let pieChart = null;
+
+        function renderPie() {
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            const labels = CATEGORY_DATA.map(d => d.label);
+            const values = CATEGORY_DATA.map(d => d.value);
+            const colors = CATEGORY_DATA.map(d => d.color);
+
+            if (pieChart) {
+                pieChart.data.labels = labels;
+                pieChart.data.datasets[0].data = values;
+                pieChart.data.datasets[0].backgroundColor = colors;
+                pieChart.update();
+                return;
+            }
+            pieChart = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{ data: values, backgroundColor: colors, borderColor: '#fff', borderWidth: 2 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { boxWidth: 12, padding: 12, font: { size: 11, weight: '500' }, color: '#1e1f22' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    let percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': ' + percentage + '%';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 9. 渲染错题列表
+        function renderErrorList() {
+            const container = document.getElementById('errorList');
+            container.innerHTML = ERROR_ITEMS.map(item =>
+                `<div class="error-item">
+                    <div class="q-title">📌 ${item.question}</div>
+                    <div class="q-correct">${item.correct}</div>
+                    <div class="q-common">${item.common}</div>
+                    <span class="q-tag">${item.category}</span>
+                </div>`
+            ).join('');
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 10. 下拉切换 & 初始化
+        document.getElementById('memberSelect').addEventListener('change', function(e) {
+            const val = e.target.value;
+            buildChart(val === 'all' ? 'all' : parseInt(val));
+        });
+
+        renderStats();
+        renderSelect();
+        renderRankingAndDetail();
+        renderPie();
+        renderErrorList();
+        buildChart('all');
+
+        // 窗口自适应
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                if (chart) chart.resize();
+                if (pieChart) pieChart.resize();
+            }, 150);
+        });
+    </script>
+</body>
+</html>
